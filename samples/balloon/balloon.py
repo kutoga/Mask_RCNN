@@ -27,6 +27,7 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     python3 balloon.py splash --weights=last --video=<URL or path to file>
 """
 
+import random
 import os
 import sys
 import json
@@ -34,6 +35,7 @@ import datetime
 import numpy as np
 import skimage.draw
 import imgaug
+import matplotlib.pyplot as plt
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -42,6 +44,8 @@ ROOT_DIR = os.path.abspath("../../")
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils
+from mrcnn import visualize
+
 
 # Path to trained weights file
 COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -88,10 +92,10 @@ class BalloonDataset(utils.Dataset):
         subset: Subset to load: train or val
         """
         # Add classes. We have only one class to add.
-        self.add_class("balloon", 1, "balloon")
+        self.add_class("balloon", 1, "article")
 
         # Train or validation dataset?
-        assert subset in ["train", "val"]
+        assert subset in ["train", "val", "test"]
         dataset_dir = os.path.join(dataset_dir, subset)
 
         # Load annotations
@@ -196,7 +200,7 @@ def train(model):
     augmentation = imgaug.augmenters.Sequential([
         imgaug.augmenters.Fliplr(0.5),
         imgaug.augmenters.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
-        imgaug.augmenters.SaltAntPepper(0.1),
+        #imgaug.augmenters.SaltAntPepper(0.1),
         imgaug.augmenters.Dropout(0.2),
         imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
     ])
@@ -375,6 +379,30 @@ if __name__ == '__main__':
     elif args.command == "splash":
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
+    elif args.command == "test":
+        dataset = BalloonDataset()
+        dataset.load_balloon(args.dataset, "test")
+        dataset.prepare()
+        for image_id in dataset.image_ids:
+#        image_id = random.choice(dataset.image_ids)
+            image = dataset.load_image(image_id)
+            mask, class_ids = dataset.load_mask(image_id)
+            bbox = utils.extract_bboxes(mask)
+            print("image_id ", image_id, dataset.image_reference(image_id))
+
+            info = dataset.image_info[image_id]
+            results = model.detect([image], verbose=1)
+
+            visualize.display_instances(image, bbox, mask, class_ids, dataset.class_names)
+            plt.savefig(f'visualization_{str(image_id).zfill(4)}_labels.png')
+            plt.clf()
+            plt.close()
+
+            r = results[0]
+            visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'], dataset.class_names, r['scores'])
+            plt.savefig(f'visualization_{str(image_id).zfill(4)}_prediction.png')
+            plt.clf()
+            plt.close()
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))
