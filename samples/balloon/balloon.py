@@ -33,6 +33,7 @@ import json
 import datetime
 import numpy as np
 import skimage.draw
+import imgaug
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -192,11 +193,19 @@ def train(model):
     # Since we're using a very small dataset, and starting from
     # COCO trained weights, we don't need to train too long. Also,
     # no need to train all layers, just the heads should do it.
+    augmentation = imgaug.augmenters.Sequential([
+        imgaug.augmenters.Fliplr(0.5),
+        imgaug.augmenters.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
+        imgaug.augmenters.SaltAntPepper(0.1),
+        imgaug.augmenters.Dropout(0.2),
+        imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
+    ])
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=30,
-                layers='heads')
+                layers='heads',
+                augmentation=augmentation)
 
 
 def color_splash(image, mask):
@@ -209,6 +218,7 @@ def color_splash(image, mask):
     # Make a grayscale copy of the image. The grayscale copy still
     # has 3 RGB channels, though.
     gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * 255
+    gray = np.ones_like(image) * 255
     # Copy color pixels from the original color image where mask is set
     if mask.shape[-1] > 0:
         # We're treating all instances as one, so collapse the mask into one layer
