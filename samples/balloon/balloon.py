@@ -26,7 +26,6 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     # Apply color splash to video using the last weights you trained
     python3 balloon.py splash --weights=last --video=<URL or path to file>
 """
-
 import random
 import os
 import sys
@@ -69,17 +68,36 @@ class BalloonConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 8
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + balloon
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 100
+    STEPS_PER_EPOCH = 50
+
+    VALIDATION_STEPS = 15
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
 
+    IMAGE_RESIZE_MODE = "square"
+
+    MAX_GT_INSTANCES = 40
+
+    DETECTION_MAX_INSTANCES = 40
+
+    TRAIN_BN = None
+
+    TRAIN_ROIS_PER_IMAGE = 200
+
+    IMAGE_MIN_DIM = 256
+
+    IMAGE_MAX_DIM = 256    
+
+    RPN_ANCHOR_SCALES = (32, 64, 128, 256)
+
+    BACKBONE = "resnet50"
 
 ############################################################
 #  Dataset
@@ -210,7 +228,7 @@ def train(model):
     callbacks.append(EarlyStopping(
         monitor='val_loss',
         min_delta=0,
-        patience=25,
+        patience=15,
         verbose=0,
         mode='auto'))
     callbacks.append(ModelCheckpoint(
@@ -367,33 +385,35 @@ if __name__ == '__main__':
         model = modellib.MaskRCNN(mode="inference", config=config,
                                   model_dir=args.logs)
 
-    # Select weights file to load
-    if args.weights.lower() == "coco":
-        weights_path = COCO_WEIGHTS_PATH
-        # Download weights file
-        if not os.path.exists(weights_path):
-            utils.download_trained_weights(weights_path)
-    elif args.weights.lower() == "last":
-        # Find last trained weights
-        weights_path = model.find_last()
-    elif args.weights.lower() == "imagenet":
-        # Start from ImageNet trained weights
-        weights_path = model.get_imagenet_weights()
-    elif args.weights.lower() == "random":
-        weights_path = None
-    else:
-        weights_path = args.weights
+    if args.command != "test":
 
-    # Load weights
-    print("Loading weights ", weights_path)
-    if args.weights.lower() == "coco":
-        # Exclude the last layers because they require a matching
-        # number of classes
-        model.load_weights(weights_path, by_name=True, exclude=[
-            "mrcnn_class_logits", "mrcnn_bbox_fc",
-            "mrcnn_bbox", "mrcnn_mask"])
-    elif weights_path is not None:
-        model.load_weights(weights_path, by_name=True)
+        # Select weights file to load
+        if args.weights.lower() == "coco":
+            weights_path = COCO_WEIGHTS_PATH
+            # Download weights file
+            if not os.path.exists(weights_path):
+                utils.download_trained_weights(weights_path)
+        elif args.weights.lower() == "last":
+            # Find last trained weights
+            weights_path = model.find_last()
+        elif args.weights.lower() == "imagenet":
+            # Start from ImageNet trained weights
+            weights_path = model.get_imagenet_weights()
+        elif args.weights.lower() == "random":
+            weights_path = None
+        else:
+            weights_path = args.weights
+
+        # Load weights
+        print("Loading weights ", weights_path)
+        if args.weights.lower() == "coco":
+            # Exclude the last layers because they require a matching
+            # number of classes
+            model.load_weights(weights_path, by_name=True, exclude=[
+                "mrcnn_class_logits", "mrcnn_bbox_fc",
+                "mrcnn_bbox", "mrcnn_mask"])
+        elif weights_path is not None:
+            model.load_weights(weights_path, by_name=True)
 
     # Train or evaluate
     if args.command == "train":
@@ -402,6 +422,7 @@ if __name__ == '__main__':
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
     elif args.command == "test":
+        print(f"Load weights: {args.checkpoint}...")
         model.load_weights(args.checkpoint, by_name=True)
         dataset = BalloonDataset()
         dataset.load_balloon(args.dataset, "test")
