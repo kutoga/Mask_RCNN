@@ -35,6 +35,7 @@ import datetime
 import numpy as np
 import skimage.draw
 import imgaug
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 
 # Root directory of the project
@@ -205,11 +206,26 @@ def train(model):
         imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
     ])
     print("Training network heads")
+    callbacks = []
+    callbacks.append(EarlyStopping(
+        monitor='val_loss',
+        min_delta=0,
+        patience=25,
+        verbose=0,
+        mode='auto'))
+    callbacks.append(ModelCheckpoint(
+        args.checkpoint,
+        monitor='val_loss',
+        verbose=1,
+        save_weights_only=True,
+        save_best_only=True,
+        mode='min'))
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=30,
+                epochs=500,
                 layers='all',
-                augmentation=augmentation)
+                augmentation=augmentation,
+                custom_callbacks=callbacks)
 
 
 def color_splash(image, mask):
@@ -314,6 +330,9 @@ if __name__ == '__main__':
     parser.add_argument('--video', required=False,
                         metavar="path or URL to video",
                         help='Video to apply the color splash effect on')
+    parser.add_argument('--checkpoint', required=False,
+                        help="Checkpoint path where the best validation weights are stored",
+                        default="best_weights.h5")
     args = parser.parse_args()
 
     # Validate arguments
@@ -325,6 +344,7 @@ if __name__ == '__main__':
 
     print("Weights: ", args.weights)
     print("Dataset: ", args.dataset)
+    print("Checkpoint: ", args.checkpoint)
     print("Logs: ", args.logs)
 
     # Configurations
@@ -382,6 +402,7 @@ if __name__ == '__main__':
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
     elif args.command == "test":
+        model.load_weights(args.checkpoint, by_name=True)
         dataset = BalloonDataset()
         dataset.load_balloon(args.dataset, "test")
         dataset.prepare()
