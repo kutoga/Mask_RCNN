@@ -1179,8 +1179,6 @@ def mrcnn_mask_loss_graph(border_classification_weight, target_masks, target_cla
                     tf.constant(0.0))
 
     if border_classification_weight is not None:
-        print(target_masks)
-        print(y_true)
         y_true_2d = tf.expand_dims(y_true, -1)
         border_mask = K.pool2d(y_true_2d, (3, 3), padding='same', pool_mode='max') - \
                       (1 - K.pool2d(1 - y_true_2d, (5, 5), padding='same', pool_mode='max'))
