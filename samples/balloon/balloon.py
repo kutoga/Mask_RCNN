@@ -218,9 +218,9 @@ def train(model):
     # no need to train all layers, just the heads should do it.
     augmentation = imgaug.augmenters.Sequential([
         imgaug.augmenters.Fliplr(0.5),
-        imgaug.augmenters.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
+        imgaug.augmenters.Affine(translate_px={"x": (-15, 15), "y": (-15, 15)}),
         #imgaug.augmenters.SaltAntPepper(0.1),
-        imgaug.augmenters.Dropout(0.2),
+        imgaug.augmenters.Dropout(0.5),
         imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
     ])
     print("Training network heads")
@@ -228,7 +228,7 @@ def train(model):
     callbacks.append(EarlyStopping(
         monitor='val_loss',
         min_delta=0,
-        patience=15,
+        patience=25,
         verbose=0,
         mode='auto'))
     callbacks.append(ModelCheckpoint(
