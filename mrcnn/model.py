@@ -2156,9 +2156,10 @@ class MaskRCNN():
         metrics. Then calls the Keras compile() function.
         """
         # Optimizer object
-        optimizer = keras.optimizers.SGD(
+        optimizer = self.config.OPTIMIZER or keras.optimizers.SGD(
             lr=learning_rate, momentum=momentum,
             clipnorm=self.config.GRADIENT_CLIP_NORM)
+        print(f"Used optimizer: {optimizer}")
         # Add Losses
         # First, clear previously set losses to avoid duplication
         self.keras_model._losses = []
