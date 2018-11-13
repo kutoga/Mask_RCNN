@@ -1141,7 +1141,7 @@ def mrcnn_bbox_loss_graph(target_bbox, target_class_ids, pred_bbox):
     return loss
 
 
-def mrcnn_mask_loss_graph(target_masks, target_class_ids, pred_masks):
+def mrcnn_mask_loss_graph(border_classification_weight, target_masks, target_class_ids, pred_masks):
     """Mask binary cross-entropy loss for the masks head.
 
     target_masks: [batch, num_rois, height, width].
@@ -1171,11 +1171,22 @@ def mrcnn_mask_loss_graph(target_masks, target_class_ids, pred_masks):
     y_true = tf.gather(target_masks, positive_ix)
     y_pred = tf.gather_nd(pred_masks, indices)
 
+
     # Compute binary cross entropy. If no positive ROIs, then return 0.
     # shape: [batch, roi, num_classes]
     loss = K.switch(tf.size(y_true) > 0,
                     K.binary_crossentropy(target=y_true, output=y_pred),
                     tf.constant(0.0))
+
+    if border_classification_weight is not None:
+        print(target_masks)
+        print(y_true)
+        y_true_2d = tf.expand_dims(y_true, -1)
+        border_mask = K.pool2d(y_true_2d, (3, 3), padding='same', pool_mode='max') - \
+                      (1 - K.pool2d(1 - y_true_2d, (5, 5), padding='same', pool_mode='max'))
+        border_mask = tf.squeeze(border_mask, [3])
+        loss += (loss * border_mask) * border_classification_weight
+
     loss = K.mean(loss)
     return loss
 
@@ -2016,7 +2027,7 @@ class MaskRCNN():
                 [target_class_ids, mrcnn_class_logits, active_class_ids])
             bbox_loss = KL.Lambda(lambda x: mrcnn_bbox_loss_graph(*x), name="mrcnn_bbox_loss")(
                 [target_bbox, target_class_ids, mrcnn_bbox])
-            mask_loss = KL.Lambda(lambda x: mrcnn_mask_loss_graph(*x), name="mrcnn_mask_loss")(
+            mask_loss = KL.Lambda(lambda x: mrcnn_mask_loss_graph(config.BORDER_CLASSIFICATION_WEIGHT, *x), name="mrcnn_mask_loss")(
                 [target_mask, target_class_ids, mrcnn_mask])
 
             # Model

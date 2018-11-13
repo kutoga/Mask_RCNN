@@ -20,6 +20,8 @@ class Config(object):
     that need to be changed.
     """
 
+    BORDER_CLASSIFICATION_WEIGHT = None
+
     OPTIMIZER = None
 
     # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.

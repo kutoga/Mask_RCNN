@@ -99,7 +99,9 @@ class BalloonConfig(Config):
 
     BACKBONE = "resnet50"
 
-    OPTIMIZER = "rmsprop"
+    #OPTIMIZER = "rmsprop"
+
+    BORDER_CLASSIFICATION_WEIGHT = 5.
 
 ############################################################
 #  Dataset
@@ -222,7 +224,7 @@ def train(model):
         imgaug.augmenters.Fliplr(0.5),
         imgaug.augmenters.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
         #imgaug.augmenters.SaltAntPepper(0.1),
-        imgaug.augmenters.Dropout(0.2),
+        imgaug.augmenters.Dropout(0.4, per_channel=True),
         imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
     ])
     print("Training network heads")
