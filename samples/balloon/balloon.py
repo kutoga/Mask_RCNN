@@ -33,7 +33,7 @@ import json
 import datetime
 import numpy as np
 import skimage.draw
-import imgaug
+from imgaug import augmenters as iaa
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 import matplotlib.pyplot as plt
 
@@ -220,19 +220,19 @@ def train(model):
     # Since we're using a very small dataset, and starting from
     # COCO trained weights, we don't need to train too long. Also,
     # no need to train all layers, just the heads should do it.
-    augmentation = imgaug.augmenters.Sequential([
-        imgaug.augmenters.Fliplr(0.5),
-        imgaug.augmenters.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
+    augmentation = iaa.SomeOf((0, None), [
+        iaa.Fliplr(0.5),
+        iaa.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
         #imgaug.augmenters.SaltAntPepper(0.1),
-        imgaug.augmenters.Dropout(0.4, per_channel=True),
-        imgaug.augmenters.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.1)
+        iaa.Dropout(0.4, per_channel=True),
+        iaa.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.5)
     ])
     print("Training network heads")
     callbacks = []
     callbacks.append(EarlyStopping(
         monitor='val_loss',
         min_delta=0,
-        patience=15,
+        patience=20,
         verbose=0,
         mode='auto'))
     callbacks.append(ModelCheckpoint(
@@ -242,13 +242,25 @@ def train(model):
         save_weights_only=True,
         save_best_only=True,
         mode='min'))
-    model.train(dataset_train, dataset_val,
+    history = model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=500,
-                layers='all',
+                layers=args.layers,
                 augmentation=augmentation,
                 custom_callbacks=callbacks)
+    train_loss = history.history['loss']
+    val_loss = history.history['val_loss']
+    epoch_count = range(1, len(training_loss) + 1)
 
+    plt.plot(epoch_count, training_loss, 'r--')
+    plt.plot(epoch_count, test_loss, 'b-')
+    plt.legend(['Training Loss', 'Test Loss'])
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.grid(True)
+    plt.savefig('visualization_history.svg')
+    plt.clf()
+    plt.close()
 
 def color_splash(image, mask):
     """Apply color splash effect.
@@ -342,6 +354,9 @@ if __name__ == '__main__':
     parser.add_argument('--weights', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
+    parser.add_argument('--layers', required=False,
+                        default='all',
+                        help='The layers which should be trained')
     parser.add_argument('--logs', required=False,
                         default=DEFAULT_LOGS_DIR,
                         metavar="/path/to/logs/",
