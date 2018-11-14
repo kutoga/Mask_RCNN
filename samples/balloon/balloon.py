@@ -223,7 +223,6 @@ def train(model):
     augmentation = iaa.SomeOf((0, None), [
         iaa.Fliplr(0.5),
         iaa.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
-        #imgaug.augmenters.SaltAntPepper(0.1),
         iaa.Dropout(0.4, per_channel=True),
         iaa.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.5)
     ])
