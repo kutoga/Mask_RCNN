@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 result_dir="$1"
 if [ -z "$result_dir" ]; then
     result_dir=/data/results/
