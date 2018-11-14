@@ -1017,9 +1017,9 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
 
     x = KL.TimeDistributed(KL.Conv2D(8, (1, 1), padding="same"),
                            name="mrcnn_mask_ref_bottleneck")(x)
-    x = KL.Activation('sigmoid')(x)
     x = KL.TimeDistributed(BatchNorm(),
                            name='mrcnn_mask_ref_bn_bottleneck')(x, training=train_bn)
+    x = KL.Activation('sigmoid')(x)
     x = KL.Dropout(0.3)(x)
 
     x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
