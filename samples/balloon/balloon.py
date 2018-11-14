@@ -249,11 +249,11 @@ def train(model):
                 custom_callbacks=callbacks)
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
-    epoch_count = range(1, len(training_loss) + 1)
+    epoch_count = range(1, len(train_loss) + 1)
 
-    plt.plot(epoch_count, training_loss, 'r--')
-    plt.plot(epoch_count, test_loss, 'b-')
-    plt.legend(['Training Loss', 'Test Loss'])
+    plt.plot(epoch_count, train_loss, 'r--')
+    plt.plot(epoch_count, val_loss, 'b-')
+    plt.legend(['Training Loss', 'Validation Loss'])
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid(True)
