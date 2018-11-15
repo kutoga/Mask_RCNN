@@ -955,7 +955,7 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
 
 
 def build_fpn_mask_graph(rois, feature_maps, image_meta,
-                         pool_size, num_classes, train_bn=True):
+                         pool_size, num_classes, train_bn=True, use_refinement_net=False, only_detect_rectangles=False):
     """Builds the computation graph of the mask head of Feature Pyramid Network.
 
     rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
@@ -1002,38 +1002,43 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
     x = KL.TimeDistributed(KL.Conv2DTranspose(256, (2, 2), strides=2, activation="relu"),
                            name="mrcnn_mask_deconv")(x)
 
-    # <RefinementNet>
-    x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
-                           name="mrcnn_mask_ref_conv1")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_ref_bn1')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    if only_detect_rectangles:
+        x = KL.TimeDistributed(KL.Lambda(lambda x: x * 0. + 1.))(x)
+        return x
 
-    x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
-                           name="mrcnn_mask_ref_conv2")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_ref_bn2')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    if use_refinement_net:
+        # <RefinementNet>
+        x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
+                            name="mrcnn_mask_ref_conv1")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                            name='mrcnn_mask_ref_bn1')(x, training=train_bn)
+        x = KL.Activation('relu')(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(8, (1, 1), padding="same"),
-                           name="mrcnn_mask_ref_bottleneck")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_ref_bn_bottleneck')(x, training=train_bn)
-    x = KL.Activation('sigmoid')(x)
-    x = KL.Dropout(0.3)(x)
+        x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
+                            name="mrcnn_mask_ref_conv2")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                            name='mrcnn_mask_ref_bn2')(x, training=train_bn)
+        x = KL.Activation('relu')(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
-                           name="mrcnn_mask_ref_conv3")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_ref_bn3')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+        x = KL.TimeDistributed(KL.Conv2D(8, (1, 1), padding="same"),
+                            name="mrcnn_mask_ref_bottleneck")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                            name='mrcnn_mask_ref_bn_bottleneck')(x, training=train_bn)
+        x = KL.Activation('sigmoid')(x)
+        x = KL.Dropout(0.3)(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(16, (3, 3), padding="same"),
-                           name="mrcnn_mask_ref_conv4")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_ref_bn4')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
-    # </RefinementNet>
+        x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
+                            name="mrcnn_mask_ref_conv3")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                            name='mrcnn_mask_ref_bn3')(x, training=train_bn)
+        x = KL.Activation('relu')(x)
+
+        x = KL.TimeDistributed(KL.Conv2D(16, (3, 3), padding="same"),
+                            name="mrcnn_mask_ref_conv4")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                            name='mrcnn_mask_ref_bn4')(x, training=train_bn)
+        x = KL.Activation('relu')(x)
+        # </RefinementNet>
 
     x = KL.TimeDistributed(KL.Conv2D(num_classes, (1, 1), strides=1, activation="sigmoid"),
                            name="mrcnn_mask")(x)
@@ -2045,7 +2050,9 @@ class MaskRCNN():
                                               input_image_meta,
                                               config.MASK_POOL_SIZE,
                                               config.NUM_CLASSES,
-                                              train_bn=config.TRAIN_BN)
+                                              train_bn=config.TRAIN_BN,
+                                              use_refinement_net=config.USE_REFINEMENT_NET,
+                                              only_detect_rectangles=config.ONLY_DETECT_RECTANGLES)
 
             # TODO: clean up (use tf.identify if necessary)
             output_rois = KL.Lambda(lambda x: x * 1, name="output_rois")(rois)

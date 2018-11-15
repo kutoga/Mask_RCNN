@@ -20,9 +20,17 @@ class Config(object):
     that need to be changed.
     """
 
+    # Weight the border of a segmentation mask more or less (for the used loss)
     BORDER_CLASSIFICATION_WEIGHT = None
 
+    # The used optimizer (None = default)
     OPTIMIZER = None
+
+    # Use a refinement network for the pixel classification
+    USE_REFINEMENT_NET = False
+
+    # Only detect rectangles / bounding boxes
+    ONLY_DETECT_RECTANGLES = False
 
     # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.
     # Useful if your code needs to do things differently depending on which

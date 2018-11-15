@@ -95,7 +95,7 @@ class BalloonConfig(Config):
 
     IMAGE_MIN_DIM = 256
 
-    IMAGE_MAX_DIM = 256    
+    IMAGE_MAX_DIM = 256
 
     RPN_ANCHOR_SCALES = (32, 64, 128, 256)
 
@@ -104,6 +104,10 @@ class BalloonConfig(Config):
     #OPTIMIZER = "rmsprop"
 
     BORDER_CLASSIFICATION_WEIGHT = 5.
+
+    USE_REFINEMENT_NET = True
+
+    ONLY_DETECT_RECTANGLES = True
 
 ############################################################
 #  Dataset
