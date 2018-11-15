@@ -1024,7 +1024,7 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
                             name="mrcnn_mask_ref_bottleneck")(x)
         x = KL.TimeDistributed(BatchNorm(),
                             name='mrcnn_mask_ref_bn_bottleneck')(x, training=train_bn)
-        x = KL.Activation('sigmoid')(x)
+        x = KL.Activation('sigmoid', name="mrcnn_ref_sig_bottleneck")(x)
         x = KL.Dropout(0.3)(x)
 
         x = KL.TimeDistributed(KL.Conv2D(32, (5, 5), padding="same"),
@@ -2107,8 +2107,9 @@ class MaskRCNN():
                                               input_image_meta,
                                               config.MASK_POOL_SIZE,
                                               config.NUM_CLASSES,
-                                              train_bn=config.TRAIN_BN)
-
+                                              train_bn=config.TRAIN_BN,
+                                              use_refinement_net=config.USE_REFINEMENT_NET,
+                                              only_detect_rectangles=config.ONLY_DETECT_RECTANGLES)
             model = KM.Model([input_image, input_image_meta, input_anchors],
                              [detections, mrcnn_class, mrcnn_bbox,
                                  mrcnn_mask, rpn_rois, rpn_class, rpn_bbox],

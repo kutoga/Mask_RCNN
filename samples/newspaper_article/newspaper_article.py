@@ -104,13 +104,13 @@ class BalloonConfig(Config):
 
     BACKBONE = "resnet50"
 
-    OPTIMIZER = SGD(lr=0.01, momentum=0.9, clipnorm=5.0, nesterov=True)
+    #OPTIMIZER = SGD(lr=0.01, momentum=0.9, clipnorm=5.0, nesterov=True)
 
     BORDER_CLASSIFICATION_WEIGHT = 5.
 
     USE_REFINEMENT_NET = True
 
-    ONLY_DETECT_RECTANGLES = True
+    ONLY_DETECT_RECTANGLES = False
 
     LOSS_WEIGHTS = {
          "rpn_class_loss": 1.,
@@ -420,6 +420,7 @@ if __name__ == '__main__':
     else:
         model = modellib.MaskRCNN(mode="inference", config=config,
                                   model_dir=args.logs)
+    model.keras_model.summary()
 
     if args.command != "test":
 
