@@ -1,0 +1,3 @@
+- Allow only rectangular polygons (=bounding boxes)
+- Weight the errors: it is better to have too much content compared to to less
+  - Just a weighted binary crossentropy
