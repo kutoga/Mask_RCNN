@@ -32,6 +32,7 @@ import sys
 import json
 import datetime
 import numpy as np
+from keras.optimizers import SGD
 import skimage.draw
 from imgaug import augmenters as iaa
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -68,6 +69,8 @@ class BalloonConfig(Config):
 
     USE_MINI_MASK = False
 
+    BINARY_CROSSENTROPY_WEIGHTS = {0: 1., 1: 1.8}
+
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
     IMAGES_PER_GPU = 7
@@ -101,13 +104,21 @@ class BalloonConfig(Config):
 
     BACKBONE = "resnet50"
 
-    #OPTIMIZER = "rmsprop"
+    OPTIMIZER = SGD(lr=0.01, momentum=0.9, clipnorm=5.0, nesterov=True)
 
     BORDER_CLASSIFICATION_WEIGHT = 5.
 
     USE_REFINEMENT_NET = True
 
     ONLY_DETECT_RECTANGLES = True
+
+    LOSS_WEIGHTS = {
+         "rpn_class_loss": 1.,
+         "rpn_bbox_loss": 1.,
+         "mrcnn_class_loss": 0.1,
+         "mrcnn_bbox_loss": 10.,
+         "mrcnn_mask_loss": 1.
+     }
 
 ############################################################
 #  Dataset

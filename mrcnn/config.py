@@ -20,6 +20,9 @@ class Config(object):
     that need to be changed.
     """
 
+    # Use a weighted binary crossentropy (default weight is 1. for positive and negative)
+    BINARY_CROSSENTROPY_WEIGHTS = None #{     #    0: 1.     #    1: 1.     #}
+
     # Weight the border of a segmentation mask more or less (for the used loss)
     BORDER_CLASSIFICATION_WEIGHT = None
 
