@@ -64,11 +64,13 @@ class BalloonConfig(Config):
     Derives from the base Config class and overrides some values.
     """
     # Give the configuration a recognizable name
-    NAME = "balloon"
+    NAME = "newspaper_article"
+
+    USE_MINI_MASK = False
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 8
+    IMAGES_PER_GPU = 7
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + balloon
