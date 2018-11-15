@@ -226,6 +226,7 @@ def train(model):
         iaa.Fliplr(0.5),
         iaa.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
         iaa.Dropout(0.4, per_channel=True),
+        iaa.CoarseDropout(0.2, per_channel=True, size_percent=(0.50, 0.20)),
         iaa.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.5)
     ])
     print("Training network heads")
