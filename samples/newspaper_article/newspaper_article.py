@@ -32,7 +32,7 @@ import sys
 import json
 import datetime
 import numpy as np
-from keras.optimizers import SGD
+from keras.optimizers import SGD, RMSprop
 import skimage.draw
 from imgaug import augmenters as iaa
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -105,6 +105,7 @@ class BalloonConfig(Config):
     BACKBONE = "resnet50"
 
     #OPTIMIZER = SGD(lr=0.01, momentum=0.9, clipnorm=5.0, nesterov=True)
+    #OPTIMIZER = RMSprop(clipnorm=5.0)
 
     BORDER_CLASSIFICATION_WEIGHT = 5.
 
@@ -112,13 +113,13 @@ class BalloonConfig(Config):
 
     ONLY_DETECT_RECTANGLES = False
 
-    LOSS_WEIGHTS = {
-         "rpn_class_loss": 1.,
-         "rpn_bbox_loss": 1.,
-         "mrcnn_class_loss": 0.1,
-         "mrcnn_bbox_loss": 10.,
-         "mrcnn_mask_loss": 1.
-     }
+    #LOSS_WEIGHTS = {
+    #     "rpn_class_loss": 1.,
+    #     "rpn_bbox_loss": 1.,
+    #     "mrcnn_class_loss": 0.1,
+    #     "mrcnn_bbox_loss": 10.,
+    #     "mrcnn_mask_loss": 1.
+    # }
 
 ############################################################
 #  Dataset
