@@ -240,8 +240,10 @@ def train(model):
     # no need to train all layers, just the heads should do it.
     augmentation = iaa.SomeOf((0, None), [
         iaa.Fliplr(0.5),
-        iaa.Affine(translate_px={"x": (-10, 10), "y": (-10, 10)}),
+        iaa.Affine(translate_px={"x": (-20, 20)}),
+        iaa.Affine(scale={"x": (0.8, 1.0), "y": (0.8, 1.0)}),
         iaa.Dropout(0.4, per_channel=True),
+        iaa.GaussianBlur(sigma=(0.1, 2.0)),
         iaa.CoarseDropout(0.2, per_channel=True, size_percent=(0.50, 0.20)),
         iaa.AdditiveGaussianNoise(loc=0, scale=(0, 0.05), per_channel=0.5)
     ])
