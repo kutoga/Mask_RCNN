@@ -252,7 +252,7 @@ def train(model):
     callbacks.append(EarlyStopping(
         monitor='val_loss',
         min_delta=0,
-        patience=20,
+        patience=40,
         verbose=0,
         mode='auto'))
     callbacks.append(ModelCheckpoint(
