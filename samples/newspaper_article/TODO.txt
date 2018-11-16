@@ -1,3 +1,6 @@
 - Allow only rectangular polygons (=bounding boxes)
 - Weight the errors: it is better to have too much content compared to to less
   - Just a weighted binary crossentropy
+- DETECTION_NMS_THRESHOLD = 0 => non-overlapping objects
+- DETECTION threshold von 0.9 auf 0.8 oder so runter
+

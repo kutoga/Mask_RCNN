@@ -104,6 +104,8 @@ class BalloonConfig(Config):
 
     BACKBONE = "resnet50"
 
+    DETECTION_NMS_THRESHOLD = 0.
+
     #OPTIMIZER = SGD(lr=0.01, momentum=0.9, clipnorm=5.0, nesterov=True)
     #OPTIMIZER = RMSprop(clipnorm=5.0)
 
