@@ -84,7 +84,7 @@ class BalloonConfig(Config):
     VALIDATION_STEPS = 15
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_MIN_CONFIDENCE = 0.7
 
     IMAGE_RESIZE_MODE = "square"
 
