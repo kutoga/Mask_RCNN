@@ -73,7 +73,7 @@ class BalloonConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 7
+    IMAGES_PER_GPU = 6
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + balloon
@@ -84,17 +84,17 @@ class BalloonConfig(Config):
     VALIDATION_STEPS = 15
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.7
+    DETECTION_MIN_CONFIDENCE = 0.5
 
     IMAGE_RESIZE_MODE = "square"
 
-    MAX_GT_INSTANCES = 40
+    MAX_GT_INSTANCES = 100
 
-    DETECTION_MAX_INSTANCES = 40
+    DETECTION_MAX_INSTANCES = 100
 
     TRAIN_BN = None
 
-    TRAIN_ROIS_PER_IMAGE = 200
+    TRAIN_ROIS_PER_IMAGE = 256
 
     IMAGE_MIN_DIM = 256
 
